@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Pesto – Админ-панель</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Great+Vibes&display=swap"
+    rel="stylesheet"
+  >
+   <link rel="stylesheet" href="/static/pesto_main.css">
+  <link rel="stylesheet" href="/static/pesto_admin.css">
+</head>
+<body>
+
+  <header class="top-nav">
+    <div class="nav-center">
+      <span class="admin-header-title">Админ-панель</span>
+    </div>
+    <div class="nav-right">
+      <a href="/logout" class="nav-btn">Выйти</a>
+    </div>
+  </header>
+
+  <main class="admin-page">
+    <div class="container">
+
+      <h1 class="admin-title">Админ-панель ресторана</h1>
+      <p class="admin-subtitle">Управляйте заказами, бронированиями, меню и столиками.</p>
+
+      <div class="admin-messages error" id="admin-global-error"></div>
+      <div class="admin-messages success" id="admin-global-success"></div>
+
+      <section class="admin-section">
+        <div class="admin-card">
+          <h2 class="admin-section-title">Все бронирования</h2>
+          <div class="admin-placeholder" id="reservations-container">
+            <p>Здесь будет таблица бронирований.</p>
+          </div>
+
+          <h2 class="admin-section-title admin-section-title-spaced">Все заказы</h2>
+          <div class="admin-placeholder" id="orders-container">
+            <p>Здесь будет таблица заказов.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-section">
+        <div class="admin-card">
+          <h2 class="admin-section-title">Работа с меню</h2>
+
+          <div class="admin-messages error" id="menu-messages-error"></div>
+          <div class="admin-messages success" id="menu-messages-success"></div>
+
+          <h3 class="admin-subsection-title">Добавить блюдо</h3>
+          <form id="add-menu-item-form">
+            <div class="admin-form-grid">
+              <div class="admin-form-group">
+                <label for="menu-category-id">Категория</label>
+                <select id="menu-category-id" name="category_id" required>
+                  <option value="">Выберите категорию</option>
+                </select>
+              </div>
+
+              <div class="admin-form-group">
+                <label for="menu-name">Название</label>
+                <input id="menu-name" name="name" required>
+              </div>
+
+              <div class="admin-form-group">
+                <label for="menu-price">Цена</label>
+                <input id="menu-price" name="price" type="number" step="0.01" min="0" required>
+              </div>
+
+              <div class="admin-form-group">
+                <label for="menu-weight">Вес (граммы)</label>
+                <input id="menu-weight" name="weight" type="number" min="0">
+              </div>
+
+              <div class="admin-form-group">
+                <label for="menu-image-url">Изображение (имя файла)</label>
+                <input
+                  id="menu-image-url"
+                  name="image_url"
+                  type="text"
+                  placeholder="pizza.jpg или /static/menu/pizza.jpg"
+                >
+              </div>
+
+              <div class="admin-form-group admin-form-group-full">
+                <label for="menu-description">Описание</label>
+                <textarea id="menu-description" name="description" rows="2"></textarea>
+              </div>
+            </div>
+
+            <button type="submit" class="admin-button" disabled>Добавить блюдо</button>
+          </form>
+
+          <h3 class="admin-subsection-title admin-subsection-title-spaced">Удалить блюдо</h3>
+          <form id="delete-menu-item-form">
+            <div class="admin-form-grid">
+              <div class="admin-form-group">
+                <label for="delete-menu-item-id">Выберите блюдо</label>
+                <select id="delete-menu-item-id" name="menu_item_id" required>
+                  <option value="">Выберите блюдо</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="admin-button admin-button-danger" disabled>Удалить блюдо</button>
+          </form>
+
+          <hr class="admin-divider">
+
+          <h2 class="admin-section-title">Работа со столиками</h2>
+
+          <div class="admin-messages error" id="tables-messages-error"></div>
+          <div class="admin-messages success" id="tables-messages-success"></div>
+
+          <h3 class="admin-subsection-title">Добавить столик</h3>
+          <form id="add-table-form">
+            <div class="admin-form-grid">
+              <div class="admin-form-group">
+                <label for="table-number">Номер столика</label>
+                <input id="table-number" name="table_number" type="number" min="1" required>
+              </div>
+
+              <div class="admin-form-group">
+                <label for="table-seats">Количество мест</label>
+                <input id="table-seats" name="cnt_seats" type="number" min="1" required>
+              </div>
+
+              <div class="admin-form-group">
+                <label for="table-active">Активен?</label>
+                <select id="table-active" name="is_active">
+                  <option value="true" selected>Да</option>
+                  <option value="false">Нет</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="admin-button" disabled>Добавить столик</button>
+          </form>
+
+          <h3 class="admin-subsection-title admin-subsection-title-spaced">Удалить столик</h3>
+          <form id="delete-table-form">
+            <div class="admin-form-grid">
+              <div class="admin-form-group">
+                <label for="delete-table-id">Выберите столик</label>
+                <select id="delete-table-id" name="table_id" required>
+                  <option value="">Выберите столик</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="admin-button admin-button-danger" disabled>Удалить столик</button>
+          </form>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+</body>
+</html>

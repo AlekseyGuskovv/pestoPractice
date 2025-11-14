@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Pesto – Вход</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Great+Vibes&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="/static/pesto_main.css">
+  <link rel="stylesheet" href="/static/auth.css">
+</head>
+
+<body class="page-login">
+  <main class="page login-page">
+    <div class="container">
+      <h1 class="title">Вход в аккаунт</h1>
+      <p class="subtitle">Введите свои данные, чтобы продолжить.</p>
+
+      <div class="wrapper">
+        <form class="card" action="/login" method="post">
+          <div class="grid">
+            <div class="full-width">
+              <label for="login-email">E-mail</label>
+              <input
+                type="email"
+                id="login-email"
+                name="email"
+                placeholder="example@mail.ru"
+                required
+              >
+            </div>
+
+            <div class="full-width">
+              <label for="login-password">Пароль</label>
+              <input
+                type="password"
+                id="login-password"
+                name="password"
+                placeholder="Введите пароль"
+                required
+              >
+            </div>
+          </div>
+
+          <button type="submit" class="submit">Войти</button>
+
+          <p class="bottom-text">
+            Нет аккаунта?
+            <a href="/register" class="logreg-link">Зарегистрироваться</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,35 @@
+.history-page {
+  min-height: 100vh;
+  background-color: var(--main-bg-color);
+  padding: 60px 0;
+}
+
+.history-title {
+  text-align: center;
+  font-size: 40px;
+  margin-bottom: 6px;
+}
+
+.history-subtitle {
+  text-align: center;
+  font-size: 15px;
+  margin-bottom: 30px;
+  opacity: 0.8;
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.history-section h2 {
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.history-empty {
+  font-size: 14px;
+  opacity: 0.7;
+}
+

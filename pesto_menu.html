@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Pesto – Меню</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Great+Vibes&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="/static/pesto_main.css">
+  <link rel="stylesheet" href="/static/pesto_menu.css">
+</head>
+<body>
+
+  <header class="top-nav">
+    <div class="nav-center">
+      <a href="/">Главная</a>
+      <a href="/menu" class="active-link">Меню</a>
+      <a href="/booking">Бронирование</a>
+      <a href="/history">История</a>
+    </div>
+
+    <div class="nav-right">
+      <button type="button" class="nav-btn cart-btn" disabled>Корзина пуста</button>
+      <a href="/login" class="nav-btn">Войти</a>
+      <a href="/register" class="nav-btn">Регистрация</a>
+      <a href="/logout" class="nav-btn">Выйти</a>
+    </div>
+  </header>
+
+  <main class="menu-page">
+    <div class="container">
+      <h1 class="menu-title">Меню ресторана Pesto</h1>
+      <p class="menu-subtitle">Выберите блюда, укажите количество и оформите заказ онлайн</p>
+
+      <div class="order-message"></div>
+
+      <div class="menu-categories">
+        <button class="menu-category active" type="button" data-category="all">Все</button>
+        <button class="menu-category" type="button" data-category="pizza">Пицца</button>
+        <button class="menu-category" type="button" data-category="pasta">Паста</button>
+
+      </div>
+
+      <div class="dish-grid">
+
+        <div class="dish-card" data-category="pizza" data-item-id="1" data-item-name="Маргарита" data-item-price="590">
+          <div class="dish-image"></div>
+          <h3>Маргарита</h3>
+
+          <div class="dish-meta">
+            <span class="dish-weight">450 г</span>
+            <span class="dish-price">590 ₽</span>
+          </div>
+
+          <p class="dish-desc">Томатный соус, моцарелла, базилик.</p>
+
+          <div class="dish-actions">
+            <div class="qty-control">
+              <button type="button" class="qty-btn qty-minus">−</button>
+              <input type="number" class="qty-input" min="1" value="1">
+              <button type="button" class="qty-btn qty-plus">+</button>
+            </div>
+            <button type="button" class="add-to-cart-btn" disabled>В корзину</button>
+          </div>
+        </div>
+
+        <div class="dish-card" data-category="pizza" data-item-id="2" data-item-name="Пепперони" data-item-price="690">
+          <div class="dish-image"></div>
+          <h3>Пепперони</h3>
+
+          <div class="dish-meta">
+            <span class="dish-weight">500 г</span>
+            <span class="dish-price">690 ₽</span>
+          </div>
+
+          <p class="dish-desc">Пепперони, моцарелла, томатный соус.</p>
+
+          <div class="dish-actions">
+            <div class="qty-control">
+              <button type="button" class="qty-btn qty-minus">−</button>
+              <input type="number" class="qty-input" min="1" value="1">
+              <button type="button" class="qty-btn qty-plus">+</button>
+            </div>
+            <button type="button" class="add-to-cart-btn" disabled>В корзину</button>
+          </div>
+        </div>
+
+        <div class="dish-card" data-category="pasta" data-item-id="3" data-item-name="Карбонара" data-item-price="650">
+          <div class="dish-image"></div>
+          <h3>Карбонара</h3>
+
+          <div class="dish-meta">
+            <span class="dish-weight">350 г</span>
+            <span class="dish-price">650 ₽</span>
+          </div>
+
+          <p class="dish-desc">Паста, бекон, сливочный соус, пармезан.</p>
+
+          <div class="dish-actions">
+            <div class="qty-control">
+              <button type="button" class="qty-btn qty-minus">−</button>
+              <input type="number" class="qty-input" min="1" value="1">
+              <button type="button" class="qty-btn qty-plus">+</button>
+            </div>
+            <button type="button" class="add-to-cart-btn" disabled>В корзину</button>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>
