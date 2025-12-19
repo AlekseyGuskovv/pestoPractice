@@ -15,12 +15,16 @@
 
 <body class="page-login">
   <main class="page login-page">
-    <div class="container">
+    <div class="container" id="login-app">
       <h1 class="title">Вход в аккаунт</h1>
       <p class="subtitle">Введите свои данные, чтобы продолжить.</p>
 
       <div class="wrapper">
-        <form class="card" action="/login" method="post">
+        <form class="card" @submit.prevent="onSubmit">
+          <div class="auth-error" v-if="errorMessage">
+            {{ errorMessage }}
+          </div>
+
           <div class="grid">
             <div class="full-width">
               <label for="login-email">E-mail</label>
@@ -29,6 +33,7 @@
                 id="login-email"
                 name="email"
                 placeholder="example@mail.ru"
+                v-model="email"
                 required
               >
             </div>
@@ -40,12 +45,19 @@
                 id="login-password"
                 name="password"
                 placeholder="Введите пароль"
+                v-model="password"
                 required
               >
             </div>
           </div>
 
-          <button type="submit" class="submit">Войти</button>
+          <button
+            type="submit"
+            class="submit"
+            :disabled="loading"
+          >
+            {{ loading ? "Входим..." : "Войти" }}
+          </button>
 
           <p class="bottom-text">
             Нет аккаунта?
@@ -55,5 +67,82 @@
       </div>
     </div>
   </main>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+    const { createApp, ref, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const email = ref("");
+        const password = ref("");
+        const errorMessage = ref("");
+        const loading = ref(false);
+
+        onMounted(() => {
+          const params = new URLSearchParams(window.location.search);
+          const error = params.get("error");
+
+          if (!error) return;
+
+          if (error === "wrong_credentials") {
+            errorMessage.value = "Неверный e-mail или пароль";
+          } else if (error === "password_mismatch") {
+            errorMessage.value = "Пароли не совпадают";
+          } else if (error === "email_exists") {
+            errorMessage.value = "Пользователь с таким e-mail уже существует";
+          } else {
+            errorMessage.value = "Произошла ошибка";
+          }
+        });
+
+        const onSubmit = async () => {
+          errorMessage.value = "";
+          loading.value = true;
+
+          try {
+            const formData = new FormData();
+            formData.append("email", email.value);
+            formData.append("password", password.value);
+
+            const resp = await fetch("/login", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!resp.ok) {
+              let data = {};
+              try {
+                data = await resp.json();
+              } catch (_) {}
+
+              if (data && data.error) {
+                errorMessage.value = data.error;
+              } else {
+                errorMessage.value = "Ошибка входа. Попробуйте ещё раз.";
+              }
+              return;
+            }
+
+            const finalUrl = resp.url || "/";
+            window.location.href = finalUrl;
+          } catch (e) {
+            console.error(e);
+            errorMessage.value = "Не удалось отправить запрос. Проверьте соединение.";
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        return {
+          email,
+          password,
+          errorMessage,
+          loading,
+          onSubmit,
+        };
+      }
+    }).mount("#login-app");
+  </script>
 </body>
 </html>
