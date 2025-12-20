@@ -40,7 +40,7 @@
   margin-bottom: 30px;
 }
 
-.menu-category {
+.category-btn {
   padding: 8px 18px;
   border-radius: 20px;
   border: 2px solid var(--button-color);
@@ -51,11 +51,11 @@
   transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
 }
 
-.menu-category:hover {
+.category-btn:hover {
   transform: translateY(-1px);
 }
 
-.menu-category.active {
+.category-btn.active {
   background-color: var(--button-color);
   color: #fff;
 }
@@ -97,7 +97,7 @@
   margin-bottom: 6px;
 }
 
-.dish-meta {
+.dish-info {
   display: flex;
   justify-content: space-between;
   font-size: 14px;
@@ -137,7 +137,7 @@
   gap: 10px;
 }
 
-.qty-control {
+.qty {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -190,3 +190,115 @@
   pointer-events: none;
 }
 
+
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;            
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.cart-modal {
+  background-color: #1c1c1c;
+  color: #f4f0e8;
+  padding: 22px 24px 20px;
+  border-radius: 18px;
+  min-width: 280px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cart-modal h2 {
+  margin: 0;
+  font-size: 22px;
+  text-align: left;
+}
+
+.cart-modal-list {
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-top: 4px;
+}
+
+.cart-modal-list p {
+  margin: 8px 0 2px;
+  font-size: 14px;
+  opacity: 0.7;
+  text-align: center;
+}
+
+.cart-modal-item {
+  display: grid;
+  grid-template-columns: 1.4fr auto auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+  padding: 6px 0;
+}
+
+
+.cart-modal-item span:nth-child(1) { text-align: left; }
+.cart-modal-item span:nth-child(2) { text-align: right; opacity: 0.8; }
+.cart-modal-item span:nth-child(3) { text-align: right; font-weight: 500; }
+
+.cart-modal-total {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.cart-reservation {
+  margin-top: 6px;
+  font-size: 13px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reservation-select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background-color: #111;
+  color: #f4f0e8;
+  font-size: 13px;
+  outline: none;
+}
+
+.cart-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.cart-modal-actions .btn-close,
+.cart-modal-actions .cart-modal-confirm {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+}
+
+.cart-modal-actions .btn-close {
+  background: transparent;
+  color: #f4f0e8;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.cart-modal-actions .cart-modal-confirm {
+  background-color: var(--button-color);
+  color: #fff;
+}

@@ -19,14 +19,15 @@
       <a href="/">Главная</a>
       <a href="/menu" class="active-link">Меню</a>
       <a href="/booking">Бронирование</a>
-      <a href="/history">История</a>
+      <a href="/history" class="history-link" style="display:none;">История</a>
     </div>
 
     <div class="nav-right">
       <button type="button" class="nav-btn cart-btn" disabled>Корзина пуста</button>
-      <a href="/login" class="nav-btn">Войти</a>
-      <a href="/register" class="nav-btn">Регистрация</a>
-      <a href="/logout" class="nav-btn">Выйти</a>
+
+      <a href="/login" class="nav-btn auth-link-login">Войти</a>
+      <a href="/register" class="nav-btn auth-link-register">Регистрация</a>
+      <a href="/logout" class="nav-btn logout-btn" style="display:none;">Выйти</a>
     </div>
   </header>
 
@@ -38,81 +39,323 @@
       <div class="order-message"></div>
 
       <div class="menu-categories">
-        <button class="menu-category active" type="button" data-category="all">Все</button>
-        <button class="menu-category" type="button" data-category="pizza">Пицца</button>
-        <button class="menu-category" type="button" data-category="pasta">Паста</button>
-
+        <button class="category-btn active" type="button" data-category="all">Все</button>
+        {% for cat in categories %}
+          <button class="category-btn" type="button" data-category="{{ cat.key }}">{{ cat.name }}</button>
+        {% endfor %}
       </div>
 
       <div class="dish-grid">
+        {% for item in items %}
+          <div class="dish-card"
+               data-category="{{ item.category.key if item.category else '' }}"
+               data-item-id="{{ item.id }}"
+               data-item-name="{{ item.name }}"
+               data-item-price="{{ item.price }}">
 
-        <div class="dish-card" data-category="pizza" data-item-id="1" data-item-name="Маргарита" data-item-price="590">
-          <div class="dish-image"></div>
-          <h3>Маргарита</h3>
+            {% if item.image_url %}
+              <div class="dish-image"
+                   style="background-image:url('{{ item.image_url }}'); background-size:cover; background-position:center;">
+              </div>
+            {% else %}
+              <div class="dish-image"></div>
+            {% endif %}
 
-          <div class="dish-meta">
-            <span class="dish-weight">450 г</span>
-            <span class="dish-price">590 ₽</span>
-          </div>
+            <h3>{{ item.name }}</h3>
 
-          <p class="dish-desc">Томатный соус, моцарелла, базилик.</p>
+            <div class="dish-info">
+              {% if item.weight %}
+                <span class="dish-weight">{{ item.weight }} г</span>
+              {% else %}
+                <span class="dish-weight">&nbsp;</span>
+              {% endif %}
 
-          <div class="dish-actions">
-            <div class="qty-control">
-              <button type="button" class="qty-btn qty-minus">−</button>
-              <input type="number" class="qty-input" min="1" value="1">
-              <button type="button" class="qty-btn qty-plus">+</button>
+              {% if item.price is not none %}
+                <span class="dish-price">{{ item.price }} ₽</span>
+              {% else %}
+                <span class="dish-price"></span>
+              {% endif %}
             </div>
-            <button type="button" class="add-to-cart-btn" disabled>В корзину</button>
-          </div>
-        </div>
 
-        <div class="dish-card" data-category="pizza" data-item-id="2" data-item-name="Пепперони" data-item-price="690">
-          <div class="dish-image"></div>
-          <h3>Пепперони</h3>
+            {% if item.description %}
+              <p class="dish-desc">{{ item.description }}</p>
+            {% else %}
+              <p class="dish-desc">&nbsp;</p>
+            {% endif %}
 
-          <div class="dish-meta">
-            <span class="dish-weight">500 г</span>
-            <span class="dish-price">690 ₽</span>
-          </div>
-
-          <p class="dish-desc">Пепперони, моцарелла, томатный соус.</p>
-
-          <div class="dish-actions">
-            <div class="qty-control">
-              <button type="button" class="qty-btn qty-minus">−</button>
-              <input type="number" class="qty-input" min="1" value="1">
-              <button type="button" class="qty-btn qty-plus">+</button>
+            <div class="dish-actions">
+              <div class="qty">
+                <button type="button" class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-input" min="1" value="1">
+                <button type="button" class="qty-btn qty-plus">+</button>
+              </div>
+              <button type="button" class="add-to-cart-btn">В корзину</button>
             </div>
-            <button type="button" class="add-to-cart-btn" disabled>В корзину</button>
+
           </div>
-        </div>
-
-        <div class="dish-card" data-category="pasta" data-item-id="3" data-item-name="Карбонара" data-item-price="650">
-          <div class="dish-image"></div>
-          <h3>Карбонара</h3>
-
-          <div class="dish-meta">
-            <span class="dish-weight">350 г</span>
-            <span class="dish-price">650 ₽</span>
-          </div>
-
-          <p class="dish-desc">Паста, бекон, сливочный соус, пармезан.</p>
-
-          <div class="dish-actions">
-            <div class="qty-control">
-              <button type="button" class="qty-btn qty-minus">−</button>
-              <input type="number" class="qty-input" min="1" value="1">
-              <button type="button" class="qty-btn qty-plus">+</button>
-            </div>
-            <button type="button" class="add-to-cart-btn" disabled>В корзину</button>
-          </div>
-        </div>
-
-
+        {% endfor %}
       </div>
     </div>
+
+    <div class="modal-bg" style="display:none;">
+      <div class="cart-modal">
+        <h2>Ваш заказ</h2>
+        <div class="cart-modal-list"></div>
+        <div class="cart-modal-total"></div>
+
+        <div class="cart-reservation">
+          <label for="reservation-select">Привязать к брони (необязательно):</label>
+          <select id="reservation-select" class="reservation-select">
+            <option value="">Не привязывать</option>
+          </select>
+        </div>
+
+        <div class="cart-modal-actions">
+          <button type="button" class="btn-close">Продолжить выбор</button>
+          <button type="button" class="cart-modal-confirm">Подтвердить заказ</button>
+        </div>
+      </div>
+    </div>
+
   </main>
+
+  <script>
+    function getCookie(name) {
+      const value = document.cookie
+        .split("; ")
+        .find(row => row.startsWith(name + "="));
+      return value ? value.split("=")[1] : null;
+    }
+    const isLoggedIn = getCookie("logged_in") === "1";
+
+    const loginBtn  = document.querySelector(".auth-link-login");
+    const regBtn    = document.querySelector(".auth-link-register");
+    const logoutBtn = document.querySelector(".logout-btn");
+    const historyLink = document.querySelector(".history-link");
+
+    if (isLoggedIn) {
+      if (loginBtn)  loginBtn.style.display  = "none";
+      if (regBtn)    regBtn.style.display    = "none";
+      if (logoutBtn) logoutBtn.style.display = "inline-block";
+      if (historyLink) historyLink.style.display = "inline-block";
+    } else {
+      if (loginBtn)  loginBtn.style.display  = "inline-block";
+      if (regBtn)    regBtn.style.display    = "inline-block";
+      if (logoutBtn) logoutBtn.style.display = "none";
+      if (historyLink) historyLink.style.display = "none";
+    }
+
+    const categoryButtons = document.querySelectorAll(".category-btn");
+    const dishCards = document.querySelectorAll(".dish-card");
+
+    categoryButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const category = button.dataset.category;
+
+        categoryButtons.forEach(btn => btn.classList.remove("active"));
+        button.classList.add("active");
+
+        dishCards.forEach(card => {
+          if (category === "all" || card.dataset.category === category) {
+            card.style.display = "block";
+          } else {
+            card.style.display = "none";
+          }
+        });
+      });
+    });
+
+    const cart = {};
+
+    const cartButton        = document.querySelector(".cart-btn");
+    const modalBackground   = document.querySelector(".modal-bg");
+    const modalList         = document.querySelector(".cart-modal-list");
+    const modalTotal        = document.querySelector(".cart-modal-total");
+    const modalCloseBtn     = document.querySelector(".btn-close");
+    const modalConfirm      = document.querySelector(".cart-modal-confirm");
+    const orderMessage      = document.querySelector(".order-message");
+    const reservationSelect = document.querySelector(".reservation-select");
+
+    function updateCartBar() {
+      const items = Object.values(cart);
+      if (!cartButton) return;
+
+      if (items.length === 0) {
+        cartButton.textContent = "Корзина пуста";
+        cartButton.disabled = true;
+        return;
+      }
+
+      let totalQty = 0;
+      let totalAmount = 0;
+
+      items.forEach(it => {
+        totalQty += it.qty;
+        totalAmount += it.qty * it.price;
+      });
+
+      cartButton.textContent = `Корзина: ${totalQty} • ${totalAmount.toFixed(2)} ₽`;
+      cartButton.disabled = false;
+    }
+
+    function renderModal() {
+      const items = Object.values(cart);
+      modalList.innerHTML = "";
+
+      if (items.length === 0) {
+        modalList.innerHTML = "<p>Корзина пуста.</p>";
+        modalTotal.textContent = "";
+        return;
+      }
+
+      let totalAmount = 0;
+
+      items.forEach(it => {
+        totalAmount += it.qty * it.price;
+
+        const row = document.createElement("div");
+        row.className = "cart-modal-item";
+        row.innerHTML =
+          `<span>${it.name}</span>` +
+          `<span>${it.qty} шт.</span>` +
+          `<span>${(it.price * it.qty).toFixed(2)} ₽</span>`;
+
+        modalList.appendChild(row);
+      });
+
+      modalTotal.textContent = "Итого: " + totalAmount.toFixed(2) + " ₽";
+    }
+
+    async function loadReservationsForUser() {
+      if (!isLoggedIn || !reservationSelect) return;
+
+      try {
+        const resp = await fetch("/api/my_reservations");
+        const data = await resp.json();
+
+        if (!resp.ok || !data.success) return;
+
+        reservationSelect.innerHTML = '<option value="">Не привязывать</option>';
+
+        data.reservations.forEach(r => {
+          const optionText = `Бронь #${r.id} • ${r.date} ${r.time_start} • ${r.guests} гость(я)`;
+          const opt = document.createElement("option");
+          opt.value = r.id;
+          opt.textContent = optionText;
+          reservationSelect.appendChild(opt);
+        });
+      } catch (e) {
+        console.error("Ошибка загрузки броней", e);
+      }
+    }
+    loadReservationsForUser();
+
+    dishCards.forEach(card => {
+      const btnPlus  = card.querySelector(".qty-plus");
+      const btnMinus = card.querySelector(".qty-minus");
+      const input    = card.querySelector(".qty-input");
+      const addBtn   = card.querySelector(".add-to-cart-btn");
+
+      btnPlus.addEventListener("click", () => {
+        let val = parseInt(input.value || "1", 10);
+        if (isNaN(val) || val < 1) val = 1;
+        input.value = val + 1;
+      });
+
+      btnMinus.addEventListener("click", () => {
+        let val = parseInt(input.value || "1", 10);
+        if (isNaN(val) || val <= 1) input.value = 1;
+        else input.value = val - 1;
+      });
+
+      addBtn.addEventListener("click", () => {
+        const id    = parseInt(card.dataset.itemId, 10);
+        const name  = card.dataset.itemName;
+        const price = parseFloat(card.dataset.itemPrice);
+
+        let qty = parseInt(input.value || "1", 10);
+        if (isNaN(qty) || qty < 1) qty = 1;
+
+        if (!cart[id]) cart[id] = { id, name, price, qty };
+        else cart[id].qty += qty;
+
+        updateCartBar();
+      });
+    });
+
+    if (cartButton) {
+      cartButton.addEventListener("click", () => {
+        if (Object.values(cart).length === 0) return;
+        renderModal();
+        modalBackground.style.display = "flex";
+      });
+    }
+
+    modalCloseBtn.addEventListener("click", () => {
+      modalBackground.style.display = "none";
+    });
+
+    modalBackground.addEventListener("click", (e) => {
+      if (e.target === modalBackground) {
+        modalBackground.style.display = "none";
+      }
+    });
+    modalConfirm.addEventListener("click", async () => {
+      if (!isLoggedIn) {
+        alert("Чтобы оформить заказ, пожалуйста, войдите в аккаунт.");
+        window.location.href = "/login";
+        return;
+      }
+
+      const items = Object.values(cart).map(it => ({
+        menu_item_id: it.id,
+        cnt: it.qty,
+      }));
+
+      if (items.length === 0) {
+        alert("Корзина пуста.");
+        return;
+      }
+
+      const payload = { items };
+
+      if (reservationSelect && reservationSelect.value) {
+        payload.reservation_id = parseInt(reservationSelect.value, 10);
+      }
+
+      try {
+        const resp = await fetch("/orders/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok || !data.success) {
+          alert(data.error || "Ошибка при создании заказа.");
+          return;
+        }
+
+        if (orderMessage) {
+          let text = `Заказ №${data.order_id} успешно создан! Сумма: ${data.total_amount} ₽`;
+          if (data.reservation_id) text += ` (привязан к брони №${data.reservation_id})`;
+          orderMessage.textContent = text;
+          orderMessage.classList.add("visible");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        for (const key in cart) delete cart[key];
+        updateCartBar();
+        modalBackground.style.display = "none";
+      } catch (err) {
+        console.error(err);
+        alert("Произошла ошибка при отправке заказа.");
+      }
+    });
+
+    updateCartBar();
+  </script>
 
 </body>
 </html>
