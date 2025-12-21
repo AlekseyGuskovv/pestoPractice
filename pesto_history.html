@@ -14,48 +14,161 @@
 </head>
 <body>
 
-  <header class="top-nav">
-    <div class="nav-center">
-      <a href="/">Главная</a>
-      <a href="/menu">Меню</a>
-      <a href="/booking">Бронирование</a>
-      <a href="/history" class="active-link">История</a>
-    </div>
-
-    <div class="nav-right">
-      <a href="/login" class="nav-btn">Войти</a>
-      <a href="/register" class="nav-btn">Регистрация</a>
-      <a href="/logout" class="nav-btn">Выйти</a>
-    </div>
-  </header>
-
-  <main class="history-page">
-    <div class="container">
-      <h1 class="history-title">Мои бронирования и заказы</h1>
-      <p class="history-subtitle">
-        Здесь вы можете посмотреть все свои записи и оформленные заказы.
-      </p>
-
-      <div class="history-grid">
-
-        <section class="history-section">
-          <h2>Бронирования</h2>
-
-          <p class="history-empty">
-            У вас пока нет бронирований.
-          </p>
-        </section>
-
-        <section class="history-section">
-          <h2>Заказы</h2>
-          <p class="history-empty">
-            У вас пока нет заказов.
-          </p>
-        </section>
-
+  <div id="history-app">
+    <header class="top-nav">
+      <div class="nav-center">
+        <a href="/">Главная</a>
+        <a href="/menu">Меню</a>
+        <a href="/booking">Бронирование</a>
+        <a href="/history" class="active-link">История</a>
       </div>
-    </div>
-  </main>
+
+      <div class="nav-right">
+        <a href="/login" class="nav-btn" v-show="!isLoggedIn">Войти</a>
+        <a href="/register" class="nav-btn" v-show="!isLoggedIn">Регистрация</a>
+        <a href="/logout" class="nav-btn" v-show="isLoggedIn">Выйти</a>
+      </div>
+    </header>
+
+    <main class="history-page">
+      <div class="container">
+        <h1 class="history-title">Мои бронирования и заказы</h1>
+
+        <div class="history-grid">
+          <section class="history-section">
+            <h2>Бронирования</h2>
+            {% if reservations %}
+              <div class="history-card-list">
+                {% for r in reservations %}
+                  <article class="history-card">
+                    <div class="history-card-header">
+                      <span class="history-chip">
+                        Столик №{{ r.table_number }}
+                      </span>
+                      <span class="history-status history-status-{{ r.status }}">
+                        {{ r.status }}
+                      </span>
+                    </div>
+                    <div class="history-card-body">
+                      <div class="history-row">
+                        <span class="label">Дата:</span>
+                        <span class="value">
+                          {{ r.date.strftime('%d.%m.%Y') }}
+                        </span>
+                      </div>
+                      <div class="history-row">
+                        <span class="label">Время:</span>
+                        <span class="value">
+                          {{ r.time_start.strftime('%H:%M') }}–{{ r.time_end.strftime('%H:%M') }}
+                        </span>
+                      </div>
+
+                      <div class="history-row">
+                        <span class="label">Гостей:</span>
+                        <span class="value">{{ r.guests }}</span>
+                      </div>
+                    </div>
+                    <div class="history-card-footer">
+                      <span class="history-id">Бронь №{{ r.id }}</span>
+                    </div>
+                  </article>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="history-empty">У вас пока нет бронирований.</p>
+            {% endif %}
+          </section>
+          <section class="history-section">
+            <h2>Заказы</h2>
+            {% if orders %}
+              <div class="history-card-list">
+                {% for o in orders %}
+                  <article class="history-card">
+                    <div class="history-card-header">
+                      <span class="history-chip">
+                        Заказ №{{ o.id }}
+                      </span>
+                      <span class="history-status">
+                        {{ o.status }}
+                      </span>
+                    </div>
+                    <div class="history-card-body">
+                      <div class="history-row">
+                        <span class="label">Дата и время:</span>
+                        <span class="value">
+                          {{ o.created_at.strftime('%d.%m.%Y %H:%M') }}
+                        </span>
+                      </div>
+
+                      <div class="history-row">
+                        <span class="label">Сумма:</span>
+                        <span class="value">
+                          {{ o.total_amount }} ₽
+                        </span>
+                      </div>
+
+                      <div class="history-row">
+                        <span class="label">Привязка к брони:</span>
+                        <span class="value">
+                          {% if o.reservation_id %}
+                            Бронь №{{ o.reservation_id }}
+                          {% else %}
+                            Нет
+                          {% endif %}
+                        </span>
+                      </div>
+
+                      {% if o.items %}
+                        <div class="history-items">
+                          <div class="history-items-title">Состав заказа:</div>
+                          <ul>
+                            {% for it in o.items %}
+                              <li>
+                                <span class="item-name">{{ it.name }}</span>
+                                <span class="item-qty">{{ it.cnt }} шт.</span>
+                                <span class="item-total">{{ it.total }} ₽</span>
+                              </li>
+                            {% endfor %}
+                          </ul>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </article>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="history-empty">У вас пока нет заказов.</p>
+            {% endif %}
+          </section>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+    const { createApp, ref, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const isLoggedIn = ref(false);
+
+        function getCookie(name) {
+          const value = document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="));
+          return value ? value.split("=")[1] : null;
+        }
+
+        onMounted(() => {
+          isLoggedIn.value = getCookie("logged_in") === "1";
+        });
+
+        return { isLoggedIn };
+      }
+    }).mount("#history-app");
+  </script>
 
 </body>
 </html>
