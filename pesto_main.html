@@ -13,67 +13,97 @@
 </head>
 <body>
 
-  <header class="top-nav">
-    <div class="nav-center">
-      <a href="/" class="active-link">Главная</a>
-      <a href="/menu">Меню</a>
-      <a href="/booking">Бронирование</a>
-      <a href="/history">История</a>
-    </div>
+  <div id="main-app">
+    <header class="top-nav">
+      <div class="nav-center">
+        <a href="/" class="active-link">Главная</a>
+        <a href="/menu">Меню</a>
+        <a href="/booking">Бронирование</a>
+        <a href="/history" v-show="isLoggedIn">История</a>
+      </div>
 
-    <div class="nav-right">
-      <a href="/login" class="nav-btn">Войти</a>
-      <a href="/register" class="nav-btn">Регистрация</a>
-      <a href="/logout" class="nav-btn">Выйти</a>
-    </div>
-  </header>
+      <div class="nav-right">
+        <a href="/login" class="nav-btn" v-show="!isLoggedIn">Войти</a>
+        <a href="/register" class="nav-btn" v-show="!isLoggedIn">Регистрация</a>
+        <a href="/logout" class="nav-btn" v-show="isLoggedIn">Выйти</a>
+      </div>
+    </header>
 
-  <section id="header">
-    <div class="header-container">
-      <h1>Добро пожаловать в Pesto</h1>
-      <p>Настоящий вкус Италии в сердце вашего города</p>
-      <a href="/booking">
-        <button>Забронировать стол</button>
-      </a>
-      <a href="/menu">
-        <button>Посмотреть меню</button>
-      </a>
-    </div>
-  </section>
+    <section id="header">
+      <div class="header-container">
+        <h1>Добро пожаловать в Pesto</h1>
+        <p>Настоящий вкус Италии в сердце вашего города</p>
 
-  <section id="description">
-    <div class="container">
-      <h2>О ресторане</h2>
-      <p>
-        Мы в Pesto предлагаем вам уникальную атмосферу и аутентичные блюда
-        итальянской кухни, приготовленные только из свежайших продуктов.
-        Погрузитесь в мир настоящей Италии!
-      </p>
-    </div>
-  </section>
+        <button @click="goTo('/booking')">Забронировать стол</button>
+        <button @click="goTo('/menu')">Посмотреть меню</button>
+      </div>
+    </section>
 
-  <section id="section1">
-    <div class="header-container">
-      <h2>Лучшие итальянские пиццы в городе</h2>
-      <p>
-        Более 5 видов традиционных пицц, приготовленных в дровяной печи
-      </p>
-    </div>
-  </section>
+    <section id="description">
+      <div class="container">
+        <h2>О ресторане</h2>
+        <p>
+          Мы в Pesto предлагаем вам уникальную атмосферу и аутентичные блюда
+          итальянской кухни, приготовленные только из свежайших продуктов.
+          Погрузитесь в мир настоящей Италии!
+        </p>
+      </div>
+    </section>
 
-  <section id="contact">
-    <div class="container">
-      <h2>Контакты</h2>
-      <p>Адрес: ул. Главная, д. 10</p>
-      <p>Телефон: +7 (900) 000-00-00</p>
-    </div>
-  </section>
+    <section id="section1">
+      <div class="header-container">
+        <h2>Лучшие итальянские пиццы в городе</h2>
+        <p>
+          Более 5 видов традиционных пицц, приготовленных в дровяной печи
+        </p>
+      </div>
+    </section>
 
-  <footer>
-    <div class="container">
-      <p>&copy; 2025 Pesto. Все права защищены.</p>
-    </div>
-  </footer>
+    <section id="contact">
+      <div class="container">
+        <h2>Контакты</h2>
+        <p>Адрес: ул. Главная, д. 10</p>
+        <p>Телефон: +7 (900) 000-00-00</p>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <p>&copy; 2025 Pesto. Все права защищены.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+    const { createApp, ref, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const isLoggedIn = ref(false);
+
+        function getCookie(name) {
+          const value = document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="));
+          return value ? value.split("=")[1] : null;
+        }
+
+        const goTo = (path) => {
+          window.location.href = path;
+        };
+
+        onMounted(() => {
+          isLoggedIn.value = getCookie("logged_in") === "1";
+        });
+
+        return {
+          isLoggedIn,
+          goTo
+        };
+      }
+    }).mount("#main-app");
+  </script>
 
 </body>
 </html>
