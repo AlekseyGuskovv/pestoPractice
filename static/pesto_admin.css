@@ -54,10 +54,31 @@
 }
 
 .admin-messages.error {
-  color: #b00020;
+  color: red;
 }
 
 .admin-messages.success {
-  color: #2e7d32;
+  color: green;
 }
 
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 12px 20px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-header-title{
+  color: var(--gold-color);
+}
