@@ -2,13 +2,12 @@ import re
 from datetime import date as date_type, time as time_type, datetime
 from decimal import Decimal
 from pathlib import Path
-from types import SimpleNamespace
 
 from admin_page import router as admin_router
 from fastapi import FastAPI, Form, Depends, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from sqlalchemy import insert, select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -29,58 +28,146 @@ from security import hash_password, verify_password
 app = FastAPI(title="Pesto")
 app.include_router(admin_router)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIST = BASE_DIR / "frontend" / "dist"
 
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
-templates = Jinja2Templates(directory=str(BASE_DIR))
+if (FRONTEND_DIST / "assets").exists():
+    app.mount(
+        "/assets",
+        StaticFiles(directory=FRONTEND_DIST / "assets"),
+        name="frontend_assets",
+    )
+
+
+def get_spa_index():
+    index_path = FRONTEND_DIST / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    return HTMLResponse(
+        "<h1>Frontend not built. Run <code>npm install && npm run build</code> in frontend/</h1>",
+        status_code=503,
+    )
 
 
 @app.get("/", response_class=FileResponse)
 def root():
-    return FileResponse(BASE_DIR / "pesto_main.html")
+    return get_spa_index()
 
 
-@app.get("/menu", response_class=HTMLResponse)
-async def menu_page(request: Request, db: AsyncSession = Depends(get_db)):
-    categories_result = await db.execute(select(MenuCategory).order_by(MenuCategory.id))
-    categories = categories_result.scalars().all()
-
-    items_result = await db.execute(
-        select(MenuItem).options(joinedload(MenuItem.category)).order_by(MenuItem.id)
-    )
-    items = items_result.scalars().all()
-
-    return templates.TemplateResponse(
-        "pesto_menu.html",
-        {
-            "request": request,
-            "categories": categories,
-            "items": items,
-        },
-    )
+@app.get("/menu", response_class=FileResponse)
+def menu_page_spa():
+    return get_spa_index()
 
 
 @app.get("/booking", response_class=FileResponse)
-def booking_page():
-    return FileResponse(BASE_DIR / "pesto_booking.html")
+def booking_page_spa():
+    return get_spa_index()
 
 
 @app.get("/login", response_class=FileResponse)
-def login_page():
-    return FileResponse(BASE_DIR / "login.html")
+def login_page_spa():
+    return get_spa_index()
 
 
 @app.get("/register", response_class=FileResponse)
-def register_page():
-    return FileResponse(BASE_DIR / "register.html")
+def register_page_spa():
+    return get_spa_index()
 
 
-@app.get("/history", response_class=HTMLResponse)
-async def history_page(request: Request, db: AsyncSession = Depends(get_db)):
+@app.get("/history", response_class=FileResponse)
+def history_page_spa():
+    return get_spa_index()
+
+
+def normalize_image_url(image_url) -> str | None:
+    if image_url is None:
+        return None
+    url = str(image_url).strip()
+    if not url:
+        return None
+    if url.startswith("http://") or url.startswith("https://"):
+        return url
+    if url.startswith("/static/menu/"):
+        return "/static/image/" + url.split("/")[-1]
+    if url.startswith("/"):
+        return url
+    return f"/static/image/{url.lstrip('/')}"
+
+
+@app.get("/api/menu")
+async def api_menu(db: AsyncSession = Depends(get_db)):
+    try:
+        categories_result = await db.execute(select(MenuCategory).order_by(MenuCategory.id))
+        categories = categories_result.scalars().all()
+
+        items_result = await db.execute(
+            select(MenuItem).options(joinedload(MenuItem.category)).order_by(MenuItem.id)
+        )
+        items = items_result.scalars().all()
+
+        return JSONResponse(
+            {
+                "categories": [
+                    {"id": c.id, "name": c.name, "key": c.key} for c in categories
+                ],
+                "items": [
+                    {
+                        "id": item.id,
+                        "name": item.name,
+                        "description": item.description,
+                        "weight": item.weight,
+                        "price": str(item.price) if item.price is not None else None,
+                        "image_url": normalize_image_url(item.image_url),
+                        "category": (
+                            {
+                                "id": item.category.id,
+                                "name": item.category.name,
+                                "key": item.category.key,
+                            }
+                            if item.category
+                            else None
+                        ),
+                    }
+                    for item in items
+                ],
+            }
+        )
+    except Exception:
+        return JSONResponse(
+            {
+                "error": (
+                    "Не удалось загрузить меню. "
+                    "Убедитесь, что PostgreSQL запущен и backend доступен "
+                    "(uvicorn main:app --reload)."
+                )
+            },
+            status_code=503,
+        )
+
+
+@app.get("/api/history")
+async def api_history(request: Request, db: AsyncSession = Depends(get_db)):
     user_id_cookie = request.cookies.get("user_id")
     if not user_id_cookie:
-        return RedirectResponse(url="/login", status_code=303)
+        return JSONResponse(
+            {"error": "Необходимо войти в аккаунт."},
+            status_code=401,
+        )
 
     user_id = int(user_id_cookie)
 
@@ -101,9 +188,9 @@ async def history_page(request: Request, db: AsyncSession = Depends(get_db)):
         reservations.append(
             {
                 "id": r.id,
-                "date": r.reservation_date,
-                "time_start": r.reservation_start_time,
-                "time_end": r.reservation_end_time,
+                "date": r.reservation_date.isoformat(),
+                "time_start": r.reservation_start_time.strftime("%H:%M"),
+                "time_end": r.reservation_end_time.strftime("%H:%M"),
                 "table_number": table_number,
                 "guests": r.guests_count,
                 "status": r.status,
@@ -124,34 +211,33 @@ async def history_page(request: Request, db: AsyncSession = Depends(get_db)):
     for o in orders_models:
         items = []
         for oi in o.items:
+            price = Decimal(str(oi.price))
+            cnt = oi.cnt
             items.append(
-                SimpleNamespace(
-                    name=oi.menu_item.name if oi.menu_item else "",
-                    cnt=oi.cnt,
-                    price=oi.price,
-                    total=oi.price * oi.cnt,
-                )
+                {
+                    "name": oi.menu_item.name if oi.menu_item else "",
+                    "cnt": cnt,
+                    "price": str(price),
+                    "total": str(price * cnt),
+                }
             )
 
         orders.append(
-            SimpleNamespace(
-                id=o.id,
-                created_at=o.created_at,
-                status=o.status,
-                total_amount=o.total_amount,
-                reservation_id=o.reservation_id,
-                items=items,
-            )
+            {
+                "id": o.id,
+                "created_at": (
+                    o.created_at.isoformat(sep=" ", timespec="minutes")
+                    if isinstance(o.created_at, datetime)
+                    else str(o.created_at)
+                ),
+                "status": o.status,
+                "total_amount": str(o.total_amount),
+                "reservation_id": o.reservation_id,
+                "items": items,
+            }
         )
 
-    return templates.TemplateResponse(
-        "pesto_history.html",
-        {
-            "request": request,
-            "reservations": reservations,
-            "orders": orders,
-        },
-    )
+    return JSONResponse({"reservations": reservations, "orders": orders})
 
 
 @app.post("/register")

@@ -3,8 +3,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Request, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -23,7 +22,7 @@ from models import (
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 BASE_DIR = Path(__file__).resolve().parent
-templates = Jinja2Templates(directory=str(BASE_DIR))
+FRONTEND_DIST = BASE_DIR / "frontend" / "dist"
 
 RESERVATION_ALLOWED_STATUSES = {"confirmed", "cancelled", "completed"}
 ORDER_ALLOWED_STATUSES = {"new", "served", "cancelled"}
@@ -48,15 +47,18 @@ async def get_current_manager(
 
     return user
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/", response_class=FileResponse)
 async def admin_page(
     request: Request,
     manager: User = Depends(get_current_manager),
 ):
-    return templates.TemplateResponse(
-        "pesto_admin.html",
-        {"request": request}
-    )
+    index_path = FRONTEND_DIST / "index.html"
+    if not index_path.exists():
+        raise HTTPException(
+            status_code=503,
+            detail="Frontend not built. Run npm run build in frontend/",
+        )
+    return FileResponse(index_path)
 
 
 @router.get("/api/dashboard")
@@ -303,7 +305,7 @@ async def admin_add_menu_item(
         if "://" in raw_image or raw_image.startswith("/static/"):
             image_url = raw_image
         else:
-            image_url = "/static/menu/" + raw_image.lstrip("/")
+            image_url = "/static/image/" + raw_image.lstrip("/").split("/")[-1]
 
     cat = await db.get(MenuCategory, category_id)
     if not cat:
