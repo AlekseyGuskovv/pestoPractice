@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import TopNav from "../components/TopNav";
+import TopNav from "../shared/ui/TopNav";
 
 export default function HomePage() {
   const navigate = useNavigate();

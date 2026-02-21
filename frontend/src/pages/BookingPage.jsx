@@ -1,6 +1,6 @@
 import { useState } from "react";
-import TopNav from "../components/TopNav";
-import { postForm } from "../utils/api";
+import TopNav from "../shared/ui/TopNav";
+import { checkTables, confirmBooking } from "../shared/api/booking";
 import "../styles/pesto_booking.css";
 
 export default function BookingPage() {
@@ -28,7 +28,7 @@ export default function BookingPage() {
     setCheckLoading(true);
 
     try {
-      const { resp, data } = await postForm("/booking/check", {
+      const { resp, data } = await checkTables({
         date,
         time_start: timeStart,
         time_end: timeEnd,
@@ -76,7 +76,7 @@ export default function BookingPage() {
     setConfirmLoading(true);
 
     try {
-      const { data } = await postForm("/booking/confirm", {
+      const { data } = await confirmBooking({
         date: bookingData.date,
         time_start: bookingData.time_start,
         time_end: bookingData.time_end,

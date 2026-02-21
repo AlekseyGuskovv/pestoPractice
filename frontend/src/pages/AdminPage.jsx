@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchJSON } from "../utils/api";
-import { OrdersTable, ReservationsTable } from "../components/admin/AdminTables";
 import {
-  MenuManagement,
-  TablesManagement,
-} from "../components/admin/AdminForms";
+  getAdminMenu,
+  getAdminTables,
+  getDashboard,
+  updateOrderStatus,
+  updateReservationStatus,
+} from "../shared/api/admin";
+import { logoutUrl } from "../shared/api/auth";
+import { MenuManagement, TablesManagement } from "../components/admin/AdminForms";
+import { OrdersTable, ReservationsTable } from "../components/admin/AdminTables";
 import "../styles/pesto_admin.css";
 
 export default function AdminPage() {
@@ -18,7 +22,7 @@ export default function AdminPage() {
 
   const loadDashboard = useCallback(async () => {
     try {
-      const data = await fetchJSON("/admin/api/dashboard");
+      const data = await getDashboard();
       setReservations(data.reservations || []);
       setOrders(data.orders || []);
     } catch (err) {
@@ -29,8 +33,8 @@ export default function AdminPage() {
   const loadMenuAndTables = useCallback(async () => {
     try {
       const [menuData, tablesData] = await Promise.all([
-        fetchJSON("/admin/api/menu"),
-        fetchJSON("/admin/api/tables"),
+        getAdminMenu(),
+        getAdminTables(),
       ]);
       setCategories(menuData.categories || []);
       setMenuItems(menuData.items || []);
@@ -49,11 +53,7 @@ export default function AdminPage() {
     setGlobalError("");
     setGlobalSuccess("");
     try {
-      await fetchJSON(`/admin/api/reservations/${id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
+      await updateReservationStatus(id, status);
       setGlobalSuccess(`Статус брони #${id} обновлён.`);
       await loadDashboard();
     } catch (err) {
@@ -65,11 +65,7 @@ export default function AdminPage() {
     setGlobalError("");
     setGlobalSuccess("");
     try {
-      await fetchJSON(`/admin/api/orders/${id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
+      await updateOrderStatus(id, status);
       setGlobalSuccess(`Статус заказа #${id} обновлён.`);
       await loadDashboard();
     } catch (err) {
@@ -84,7 +80,7 @@ export default function AdminPage() {
           <span className="admin-header-title">Админ-панель</span>
         </div>
         <div className="nav-right">
-          <a href="/logout" className="nav-btn logout-btn">
+          <a href={logoutUrl()} className="nav-btn logout-btn">
             Выйти
           </a>
         </div>

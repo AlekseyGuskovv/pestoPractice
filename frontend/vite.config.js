@@ -1,10 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
-const backend = "http://127.0.0.1:8000";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const staticRoot = path.resolve(__dirname, "../static");
 
@@ -47,35 +46,40 @@ function serveProjectStatic() {
   };
 }
 
-function apiProxy() {
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const backend = env.VITE_API_PROXY_TARGET || "http://127.0.0.1:8000";
+
+  function apiProxy() {
+    return {
+      target: backend,
+      changeOrigin: true,
+      bypass(req) {
+        if (req.method === "GET" || req.method === "HEAD") {
+          return req.url;
+        }
+      },
+    };
+  }
+
   return {
-    target: backend,
-    changeOrigin: true,
-    bypass(req) {
-      if (req.method === "GET" || req.method === "HEAD") {
-        return req.url;
-      }
+    plugins: [react(), serveProjectStatic()],
+    build: {
+      outDir: "dist",
+      emptyOutDir: true,
+    },
+    server: {
+      port: 5173,
+      proxy: {
+        "/api": backend,
+        "/admin/api": backend,
+        "/booking/check": backend,
+        "/booking/confirm": backend,
+        "/orders/create": backend,
+        "/logout": backend,
+        "/login": apiProxy(),
+        "/register": apiProxy(),
+      },
     },
   };
-}
-
-export default defineConfig({
-  plugins: [react(), serveProjectStatic()],
-  build: {
-    outDir: "dist",
-    emptyOutDir: true,
-  },
-  server: {
-    port: 5173,
-    proxy: {
-      "/api": backend,
-      "/admin/api": backend,
-      "/booking/check": backend,
-      "/booking/confirm": backend,
-      "/orders/create": backend,
-      "/logout": backend,
-      "/login": apiProxy(),
-      "/register": apiProxy(),
-    },
-  },
 });

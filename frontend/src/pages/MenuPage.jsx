@@ -1,135 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import TopNav from "../components/TopNav";
-import { fetchJSON } from "../utils/api";
-import { isLoggedIn } from "../utils/cookies";
-import { resolveImageUrl } from "../utils/images";
+import CartModal from "../components/menu/CartModal";
+import DishCard from "../components/menu/DishCard";
+import TopNav from "../shared/ui/TopNav";
+import { getMenu, getMyReservations } from "../shared/api/menu";
+import { createOrder } from "../shared/api/orders";
+import { isLoggedIn } from "../shared/utils/cookies";
 import "../styles/pesto_menu.css";
-
-function DishCard({ item, onAddToCart }) {
-  const [qty, setQty] = useState(1);
-
-  const decrease = () => setQty((v) => (v <= 1 ? 1 : v - 1));
-  const increase = () => setQty((v) => v + 1);
-
-  const handleAdd = () => {
-    const safeQty = qty >= 1 ? qty : 1;
-    onAddToCart(item, safeQty);
-  };
-
-  const imageUrl = resolveImageUrl(item.image_url);
-  const imageStyle = imageUrl
-    ? {
-        backgroundImage: `url('${imageUrl}')`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }
-    : undefined;
-
-  return (
-    <div className="dish-card" data-category={item.category?.key || ""}>
-      <div className="dish-image" style={imageStyle} />
-
-      <h3>{item.name}</h3>
-
-      <div className="dish-info">
-        <span className="dish-weight">{item.weight ? `${item.weight} г` : "\u00a0"}</span>
-        <span className="dish-price">
-          {item.price != null ? `${item.price} ₽` : ""}
-        </span>
-      </div>
-
-      <p className="dish-desc">{item.description || "\u00a0"}</p>
-
-      <div className="dish-actions">
-        <div className="qty">
-          <button type="button" className="qty-btn qty-minus" onClick={decrease}>
-            −
-          </button>
-          <input
-            type="number"
-            className="qty-input"
-            min="1"
-            value={qty}
-            onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
-          />
-          <button type="button" className="qty-btn qty-plus" onClick={increase}>
-            +
-          </button>
-        </div>
-        <button type="button" className="add-to-cart-btn" onClick={handleAdd}>
-          В корзину
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function CartModal({
-  cartItems,
-  reservations,
-  reservationId,
-  onReservationChange,
-  onClose,
-  onConfirm,
-}) {
-  const totalAmount = cartItems.reduce((sum, it) => sum + it.qty * it.price, 0);
-
-  return (
-    <div className="modal-bg" style={{ display: "flex" }} onClick={onClose}>
-      <div
-        className="cart-modal"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2>Ваш заказ</h2>
-
-        <div className="cart-modal-list">
-          {cartItems.length === 0 ? (
-            <p>Корзина пуста.</p>
-          ) : (
-            cartItems.map((it) => (
-              <div key={it.id} className="cart-modal-item">
-                <span>{it.name}</span>
-                <span>{it.qty} шт.</span>
-                <span>{(it.price * it.qty).toFixed(2)} ₽</span>
-              </div>
-            ))
-          )}
-        </div>
-
-        {cartItems.length > 0 && (
-          <div className="cart-modal-total">Итого: {totalAmount.toFixed(2)} ₽</div>
-        )}
-
-        <div className="cart-reservation">
-          <label htmlFor="reservation-select">Привязать к брони (необязательно):</label>
-          <select
-            id="reservation-select"
-            className="reservation-select"
-            value={reservationId}
-            onChange={(e) => onReservationChange(e.target.value)}
-          >
-            <option value="">Не привязывать</option>
-            {reservations.map((r) => (
-              <option key={r.id} value={r.id}>
-                {`Бронь #${r.id} • ${r.date} ${r.time_start} • ${r.guests} гость(я)`}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="cart-modal-actions">
-          <button type="button" className="btn-close" onClick={onClose}>
-            Продолжить выбор
-          </button>
-          <button type="button" className="cart-modal-confirm" onClick={onConfirm}>
-            Подтвердить заказ
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function MenuPage() {
   const navigate = useNavigate();
@@ -145,7 +22,7 @@ export default function MenuPage() {
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    fetchJSON("/api/menu")
+    getMenu()
       .then((data) => {
         setCategories(data.categories || []);
         setItems(data.items || []);
@@ -169,7 +46,7 @@ export default function MenuPage() {
       .finally(() => setLoading(false));
 
     if (isLoggedIn()) {
-      fetchJSON("/api/my_reservations")
+      getMyReservations()
         .then((data) => setReservations(data.reservations || []))
         .catch(console.error);
     }
@@ -229,11 +106,7 @@ export default function MenuPage() {
     }
 
     try {
-      const data = await fetchJSON("/orders/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const data = await createOrder(payload);
 
       let text = `Заказ №${data.order_id} успешно создан! Сумма: ${data.total_amount} ₽`;
       if (data.reservation_id) {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { postForm } from "../utils/api";
+import { login } from "../shared/api/auth";
 import "../styles/auth.css";
 
 export default function LoginPage() {
@@ -30,7 +30,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { resp, data } = await postForm("/login", { email, password });
+      const { resp, data } = await login({ email, password });
 
       if (!resp.ok) {
         setErrorMessage(data.error || "Ошибка входа. Попробуйте ещё раз.");

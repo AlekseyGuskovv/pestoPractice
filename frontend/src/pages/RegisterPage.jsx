@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { postForm } from "../utils/api";
+import { register } from "../shared/api/auth";
 import "../styles/auth.css";
 
 export default function RegisterPage() {
@@ -20,7 +20,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const { resp, data } = await postForm("/register", {
+      const { resp, data } = await register({
         name,
         phone,
         email,

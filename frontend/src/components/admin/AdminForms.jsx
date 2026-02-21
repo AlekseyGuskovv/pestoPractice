@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { fetchJSON } from "../../utils/api";
+import {
+  addMenuItem,
+  addTable,
+  deleteMenuItem,
+  deleteTable,
+} from "../../shared/api/admin";
 
 export function MenuManagement({ categories, items, onReload }) {
   const [menuError, setMenuError] = useState("");
@@ -19,18 +24,14 @@ export function MenuManagement({ categories, items, onReload }) {
     setMenuSuccess("");
 
     try {
-      await fetchJSON("/admin/api/menu/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        await addMenuItem({
           category_id: Number(categoryId),
           name: name.trim(),
           price: price.trim(),
           weight: weight.trim() || null,
           image_url: imageUrl.trim() || null,
           description: description.trim() || null,
-        }),
-      });
+        });
       setMenuSuccess("Блюдо успешно добавлено.");
       setCategoryId("");
       setName("");
@@ -53,9 +54,7 @@ export function MenuManagement({ categories, items, onReload }) {
     if (!confirm("Удалить блюдо ID " + deleteItemId + "?")) return;
 
     try {
-      await fetchJSON(`/admin/api/menu/items/${deleteItemId}`, {
-        method: "DELETE",
-      });
+        await deleteMenuItem(deleteItemId);
       setMenuSuccess("Блюдо успешно удалено.");
       setDeleteItemId("");
       await onReload();
@@ -196,15 +195,11 @@ export function TablesManagement({ tables, onReload }) {
     setTablesSuccess("");
 
     try {
-      await fetchJSON("/admin/api/tables", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        await addTable({
           table_number: Number(tableNumber),
           cnt_seats: Number(tableSeats),
           is_active: tableActive === "true",
-        }),
-      });
+        });
       setTablesSuccess("Столик успешно добавлен.");
       setTableNumber("");
       setTableSeats("");
@@ -224,9 +219,7 @@ export function TablesManagement({ tables, onReload }) {
     if (!confirm("Удалить столик ID " + deleteTableId + "?")) return;
 
     try {
-      await fetchJSON(`/admin/api/tables/${deleteTableId}`, {
-        method: "DELETE",
-      });
+        await deleteTable(deleteTableId);
       setTablesSuccess("Столик успешно удалён.");
       setDeleteTableId("");
       await onReload();
